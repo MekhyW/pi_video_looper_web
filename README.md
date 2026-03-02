@@ -1,5 +1,6 @@
-# pi_video_looper2
-This is a forked & updated version of the original project [pi_video_looper](https://github.com/adafruit/pi_video_looper). It aims to support Raspberry Pi 4 & 5 and the latest Raspberry Pi OS.
+# pi_video_looper_web
+
+This is a version of [pi_video_looper2](https://github.com/adafruit/pi_video_looper2) with a web interface to manage videos. It is made for Raspberry Pi 4 & 5 and the latest Raspberry Pi OS.
 
 This version uses VLC as the sole supported video playback engine. omxplayer and hello_video are not supported.
 
@@ -8,7 +9,51 @@ Can be used in art installations, fairs, theatre, events, infoscreens, advertise
 
 Works right out of the box, but also has a lot of customisation options to make it fit your use case. See the [video_looper.ini](https://github.com/adafruit/pi_video_looper2/blob/main/assets/video_looper.ini.template) configuration file for an overview of options. 
 
-If you miss a feature just post an issue here on Github. (https://github.com/adafruit/pi_video_looper2)
+---
+
+## Web Management Interface
+
+After installation, the Pi exposes a web server on **port 5000** that lets you manage videos from any device on the same Wi-Fi network — no USB drive required.
+
+### Accessing the Interface
+
+1. Connect your phone, tablet, or laptop to the **same Wi-Fi network as the Raspberry Pi**.
+2. Open a browser and go to:
+   - **`http://<pi-ip-address>:5000`** (check your router for the Pi's IP)
+   - Or try **`http://raspberrypi.local:5000`** if mDNS is available
+
+### Web UI Features
+
+| Feature | Description |
+|---------|-------------|
+| Status | Shows whether the player is playing or idle, and how many videos are loaded |
+| Upload | Drag & drop or browse for a video file (MP4, MKV, AVI, MOV, M4V) |
+| Delete | Remove videos individually from the player |
+| Restart | Force the player to reload its playlist immediately |
+
+The default `file_reader` is set to `web_reader`, which watches `~/Videos` for files uploaded through the web interface.
+
+> **To switch back to USB drive mode:** edit `/boot/video_looper.ini` and change `file_reader = web_reader` to `file_reader = usb_drive`.
+
+### Services
+
+Two systemd services run after installation:
+
+| Service | Purpose |
+|---------|---------|
+| `video_looper` | Plays videos fullscreen on the HDMI display |
+| `video_web` | Runs the web management interface on port 5000 |
+
+Check their status with:
+```bash
+systemctl status video_looper
+systemctl status video_web
+# View logs:
+journalctl -fu video_web
+```
+
+---
+
 
 ## Feature Warning
 The datetime display showing between videos during wait_time is not functioning properly in this version.
@@ -28,8 +73,8 @@ All other features from the original pi_video_looper are believed to be tested a
 ```shell
 sudo apt-get install git
 cd ~
-git clone https://github.com/adafruit/pi_video_looper2  
-cd pi_video_looper2
+git clone https://github.com/MekhyW/pi_video_looper_web  
+cd pi_video_looper_web
 sudo ./install.sh
 ```
 
@@ -59,9 +104,9 @@ For backing up the current ini:
 For the update:
 ```shell
 cd ~
-sudo rm -rf pi_video_looper2
-git clone https://github.com/adafruit/pi_video_looper2    
-cd pi_video_looper2 
+sudo rm -rf pi_video_looper_web
+git clone https://github.com/MekhyW/pi_video_looper_web    
+cd pi_video_looper_web 
 sudo ./install.sh 
 ```
 

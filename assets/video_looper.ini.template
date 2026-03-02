@@ -25,7 +25,8 @@ video_player = vlcplayer
 # card for media files.  
 # You can change the directory to be used in the [directory] section below.  
 # The default is usb_drive.
-file_reader = usb_drive
+file_reader = web_reader
+#file_reader = usb_drive
 #file_reader = directory
 #file_reader = usb_drive_copymode
 
@@ -159,6 +160,14 @@ mount_path = /media/{USERNAME}/
 [directory]
 # The path to search for movies when using the directory file reader.
 # (see the file_reader section above to enable it)
+path = /home/{USERNAME}/Videos
+
+
+# Web reader file reader configuration follows.
+[web_reader]
+# The path where videos uploaded via the web interface are stored.
+# This directory is shared with the web server (video_web service).
+# Videos placed here are automatically picked up and played in a loop.
 path = /home/{USERNAME}/Videos
 
 

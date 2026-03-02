@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pi Video Looper — Admin</title>
+  <style>
+    /* ─── Design tokens ─── */
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #161a23;
+      --surface2: #1e2330;
+      --border:   #2a3044;
+      --accent:   #4f8ef7;
+      --accent2:  #7c5ff7;
+      --danger:   #e05252;
+      --success:  #3ecf8e;
+      --text:     #e2e8f5;
+      --muted:    #7b849a;
+      --radius:   14px;
+      --shadow:   0 8px 32px rgba(0,0,0,.45);
+    }
+
+    /* ─── Reset / base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ─── Header ─── */
+    header {
+      background: linear-gradient(135deg, #1a2035 0%, #111422 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.3px; }
+    header p  { font-size: .82rem; color: var(--muted); }
+
+    /* ─── Layout ─── */
+    .container { max-width: 860px; margin: 0 auto; padding: 32px 20px 0; }
+
+    /* ─── Cards ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ─── Status bar ─── */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      box-shadow: 0 0 0 0 transparent;
+      transition: background .3s, box-shadow .3s;
+    }
+    .status-dot.playing {
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    .status-dot.idle { background: var(--muted); }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(62,207,142,.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(62,207,142,0); }
+      100% { box-shadow: 0 0 0 0 rgba(62,207,142,0); }
+    }
+    #status-text { font-weight: 600; }
+    #status-count { color: var(--muted); font-size: .88rem; }
+
+    /* ─── Drop zone ─── */
+    #drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    #drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(79,142,247,.07);
+    }
+    #drop-zone .icon { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+    #drop-zone p { color: var(--muted); }
+    #drop-zone span { color: var(--accent); font-weight: 600; cursor: pointer; }
+    #file-input { display: none; }
+
+    /* ─── Progress ─── */
+    .progress-wrap {
+      margin-top: 16px;
+      display: none;
+    }
+    .progress-wrap.visible { display: block; }
+    .progress-label { font-size: .82rem; color: var(--muted); margin-bottom: 6px; }
+    .progress-bar-bg {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      width: 0%;
+      transition: width .15s;
+    }
+    .upload-status { margin-top: 8px; font-size: .85rem; }
+    .upload-status.ok   { color: var(--success); }
+    .upload-status.err  { color: var(--danger); }
+
+    /* ─── Video list ─── */
+    #video-list { list-style: none; }
+    #video-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: background .15s;
+    }
+    #video-list li:hover { background: #222840; }
+    .video-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .video-name { flex: 1; font-weight: 500; word-break: break-all; }
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      border-radius: 7px;
+      padding: 5px 14px;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .btn-delete:hover { background: var(--danger); color: #fff; }
+    .empty-msg { color: var(--muted); font-style: italic; text-align: center; padding: 24px 0; }
+
+    /* ─── Action buttons ─── */
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 22px;
+      border-radius: 9px;
+      border: none;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { opacity: .85; }
+
+    /* ─── Toast ─── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 24px; border-radius: 99px;
+      font-size: .88rem; box-shadow: var(--shadow);
+      transition: transform .3s ease, opacity .3s ease;
+      opacity: 0; pointer-events: none; z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.ok   { border-color: var(--success); color: var(--success); }
+    #toast.err  { border-color: var(--danger);  color: var(--danger);  }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎬</div>
+  <div>
+    <h1>Pi Video Looper</h1>
+    <p>Web Management Interface</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Status Card -->
+  <div class="card">
+    <div class="card-title">Player Status</div>
+    <div class="status-row">
+      <div class="status-dot idle" id="status-dot"></div>
+      <span id="status-text">Loading…</span>
+      <span id="status-count"></span>
+    </div>
+  </div>
+
+  <!-- Upload Card -->
+  <div class="card">
+    <div class="card-title">Upload Video</div>
+    <div id="drop-zone" role="button" tabindex="0" aria-label="Upload video file">
+      <span class="icon">📁</span>
+      <p>Drag &amp; drop a video file here, or <span id="browse-btn">browse</span></p>
+      <p style="font-size:.78rem; margin-top:6px;">Supported: MP4, MKV, AVI, MOV, M4V</p>
+      <input type="file" id="file-input" accept="video/*,.mkv,.avi,.mov" />
+    </div>
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label" id="progress-label">Uploading…</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+      <div class="upload-status" id="upload-status"></div>
+    </div>
+  </div>
+
+  <!-- Video List Card -->
+  <div class="card">
+    <div class="card-title">Videos on Player</div>
+    <ul id="video-list"><li class="empty-msg">Loading…</li></ul>
+  </div>
+
+  <!-- Actions Card -->
+  <div class="card">
+    <div class="card-title">Controls</div>
+    <div class="actions">
+      <button class="btn btn-primary" id="btn-restart">▶ Restart Player</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ─── DOM refs ───
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const browseBtn    = document.getElementById('browse-btn');
+  const progressWrap = document.getElementById('progress-wrap');
+  const progressBar  = document.getElementById('progress-bar');
+  const progressLabel= document.getElementById('progress-label');
+  const uploadStatus = document.getElementById('upload-status');
+  const videoList    = document.getElementById('video-list');
+  const statusDot    = document.getElementById('status-dot');
+  const statusText   = document.getElementById('status-text');
+  const statusCount  = document.getElementById('status-count');
+  const btnRestart   = document.getElementById('btn-restart');
+  const toast        = document.getElementById('toast');
+
+  // ─── Toast ───
+  let toastTimer;
+  function showToast(msg, type = 'ok') {
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.className   = `show ${type}`;
+    toastTimer = setTimeout(() => { toast.className = ''; }, 3000);
+  }
+
+  // ─── API helpers ───
+  async function apiFetch(url, opts = {}) {
+    const r = await fetch(url, opts);
+    const data = await r.json().catch(() => ({}));
+    return { ok: r.ok, status: r.status, data };
+  }
+
+  // ─── Status ───
+  async function refreshStatus() {
+    const { ok, data } = await apiFetch('/api/status');
+    if (!ok) return;
+    const count = data.video_count ?? 0;
+    if (count > 0) {
+      statusDot.className  = 'status-dot playing';
+      statusText.textContent = 'Playing';
+      statusCount.textContent = `${count} video${count !== 1 ? 's' : ''} in playlist`;
+    } else {
+      statusDot.className  = 'status-dot idle';
+      statusText.textContent = 'Idle — no videos';
+      statusCount.textContent = '';
+    }
+  }
+
+  // ─── Video list ───
+  async function refreshList() {
+    const { ok, data } = await apiFetch('/api/videos');
+    videoList.innerHTML = '';
+    if (!ok || !Array.isArray(data) || data.length === 0) {
+      videoList.innerHTML = '<li class="empty-msg">No videos uploaded yet.</li>';
+      return;
+    }
+    data.forEach(name => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="video-icon">🎞️</span>
+        <span class="video-name">${escHtml(name)}</span>
+        <button class="btn-delete" data-name="${escHtml(name)}">Delete</button>
+      `;
+      li.querySelector('.btn-delete').addEventListener('click', () => deleteVideo(name));
+      videoList.appendChild(li);
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── Delete ───
+  async function deleteVideo(name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    const { ok, data } = await apiFetch(`/api/videos/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (ok) {
+      showToast(`✓ Deleted ${name}`);
+      await Promise.all([refreshList(), refreshStatus()]);
+    } else {
+      showToast(`✗ ${data.error || 'Delete failed'}`, 'err');
+    }
+  }
+
+  // ─── Upload ───
+  function uploadFile(file) {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    progressWrap.classList.add('visible');
+    progressBar.style.width = '0%';
+    progressLabel.textContent = `Uploading ${file.name}…`;
+    uploadStatus.textContent  = '';
+    uploadStatus.className    = 'upload-status';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload');
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = pct + '%';
+        progressLabel.textContent = `Uploading ${file.name}… ${pct}%`;
+      }
+    });
+
+    xhr.addEventListener('load', async () => {
+      let resp = {};
+      try { resp = JSON.parse(xhr.responseText); } catch {}
+      if (xhr.status === 201) {
+        uploadStatus.textContent = `✓ ${resp.message || 'Uploaded successfully'}`;
+        uploadStatus.className   = 'upload-status ok';
+        showToast(`✓ ${file.name} uploaded`);
+        await Promise.all([refreshList(), refreshStatus()]);
+      } else {
+        uploadStatus.textContent = `✗ ${resp.error || 'Upload failed'}`;
+        uploadStatus.className   = 'upload-status err';
+        showToast(`✗ Upload failed`, 'err');
+      }
+      completedUpload();
+    });
+
+    xhr.addEventListener('error', () => {
+      uploadStatus.textContent = '✗ Network error during upload';
+      uploadStatus.className   = 'upload-status err';
+      showToast('✗ Network error', 'err');
+      completedUpload();
+    });
+
+    xhr.send(formData);
+  }
+
+  function completedUpload() {
+    fileInput.value = '';
+    setTimeout(() => progressWrap.classList.remove('visible'), 4000);
+  }
+
+  // ─── Drop zone events ───
+  browseBtn.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', e => {
+    if (e.target !== browseBtn) fileInput.click();
+  });
+  dropZone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+  });
+
+  dropZone.addEventListener('dragenter', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); });
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  });
+
+  // ─── Restart ───
+  btnRestart.addEventListener('click', async () => {
+    btnRestart.disabled = true;
+    const { ok, data } = await apiFetch('/api/restart', { method: 'POST' });
+    if (ok) showToast('✓ Restart signal sent to player');
+    else    showToast(`✗ ${data.error || 'Failed'}`, 'err');
+    setTimeout(() => { btnRestart.disabled = false; }, 2000);
+  });
+
+  // ─── Init ───
+  async function init() {
+    await Promise.all([refreshStatus(), refreshList()]);
+    // Poll status every 5 s.
+    setInterval(async () => {
+      await Promise.all([refreshStatus(), refreshList()]);
+    }, 5000);
+  }
+
+  init();
+</script>
+</body>
+</html>

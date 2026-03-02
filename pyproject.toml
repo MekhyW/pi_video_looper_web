@@ -22,7 +22,9 @@ dependencies = [
     "pygame",
     "python-vlc",
     "adafruit-circuitpython-debouncer",
-    "adafruit-blinka"
+    "adafruit-blinka",
+    "flask",
+    "werkzeug"
 ]
 
 [project.urls]

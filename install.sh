@@ -64,6 +64,11 @@ cd "$(dirname "$0")"
 
 pip install ./
 
+# Create the shared video upload directory
+echo "Creating video upload directory..."
+mkdir -p /home/$USERNAME/Videos
+chown $USERNAME:$USERNAME /home/$USERNAME/Videos
+
 # Copy the ini template file
 cp ./assets/video_looper.ini.template ./assets/video_looper.ini
 
@@ -87,4 +92,31 @@ cp ./assets/video_looper.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable video_looper
 systemctl start video_looper
-echo "Finished!"
+
+echo "Configuring video_web (web management server) to run on start..."
+echo "================================================================="
+
+# Copy the web server service template
+cp ./assets/video_web.service.template ./assets/video_web.service
+
+# Replace {USERNAME} with the actual username
+sed -i "s/{USERNAME}/$USERNAME/g" ./assets/video_web.service
+
+cp ./assets/video_web.service /etc/systemd/system/
+
+systemctl daemon-reload
+systemctl enable video_web
+systemctl start video_web
+
+echo ""
+echo "========================================="
+echo "Installation complete!"
+echo "========================================="
+echo "The web interface is accessible at:"
+PI_IP=$(hostname -I | awk '{print $1}')
+PI_HOST=$(hostname)
+echo "  http://${PI_IP}:5000"
+echo "  http://${PI_HOST}.local:5000"
+echo ""
+echo "Upload videos from any device on the same Wi-Fi network."
+echo "========================================="
