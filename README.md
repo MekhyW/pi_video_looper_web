@@ -196,6 +196,10 @@ Note: to be used as an absolute index the action needs to be an integer not a st
 Note 2: "keyboard_control" needs to be enabled in the ini for gpio to utilise keyboard commands.
 
 
+## 'Pi default' folder
+
+The 'Pi default' folder contains a dump of the SD card from a Raspberry Pi 4B with Raspberry Pi OS (64-bit) with default settings and pi_video_looper_web installed and working with an example video. It can be used to restore the Pi to its default state.
+
 ## Troubleshooting:
 * nothing happening (screen flashes once) when in copymode and new drive is plugged in?
     * check if you have the "password file" on your drive (see copymode explained above)

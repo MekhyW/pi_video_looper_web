@@ -1,0 +1,15 @@
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp6: true
+      optional: true
+  wifis:
+    wlan0:
+      dhcp4: true
+      regulatory-domain: "BR"
+      access-points:
+        "TracF":
+          password: "460e68859f634bf10e045d9c5de83874718a54f9d37ec12a4d617b8d011082c1"
+      optional: true
