@@ -108,15 +108,29 @@ systemctl daemon-reload
 systemctl enable video_web
 systemctl start video_web
 
+echo "Configuring Wi-Fi hotspot..."
+echo "============================"
+
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/setup_hotspot.sh" ]; then
+  bash "$SCRIPT_DIR/setup_hotspot.sh"
+else
+  echo "WARNING: setup_hotspot.sh not found — skipping hotspot setup."
+  echo "You can run it manually later: sudo ./setup_hotspot.sh"
+fi
+
 echo ""
 echo "========================================="
 echo "Installation complete!"
 echo "========================================="
-echo "The web interface is accessible at:"
-PI_IP=$(hostname -I | awk '{print $1}')
-PI_HOST=$(hostname)
-echo "  http://${PI_IP}:5000"
-echo "  http://${PI_HOST}.local:5000"
+echo "After rebooting, connect to the Wi-Fi hotspot"
 echo ""
-echo "Upload videos from any device on the same Wi-Fi network."
+echo "Then open the web interface at:"
+echo "  http://videolooper.local:5000"
+echo ""
+echo "Or find the Pi's IP with: hostname -I"
+echo "  http://$(hostname -I | awk '{print $1}'):5000"
+echo ""
+echo "Reboot now to activate the hotspot:"
+echo "  sudo reboot"
 echo "========================================="

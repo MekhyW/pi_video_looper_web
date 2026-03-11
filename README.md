@@ -13,14 +13,46 @@ Works right out of the box, but also has a lot of customisation options to make 
 
 ## Web Management Interface
 
-After installation, the Pi exposes a web server on **port 5000** that lets you manage videos from any device on the same Wi-Fi network — no USB drive required.
+After installation the Pi exposes a web server on **port 5000** that lets you manage videos from any device — no USB drive, no existing Wi-Fi network required.
 
-### Accessing the Interface
+### Wi-Fi Hotspot (default)
 
-1. Connect your phone, tablet, or laptop to the **same Wi-Fi network as the Raspberry Pi**.
-2. Open a browser and go to:
-   - **`http://<pi-ip-address>:5000`** (check your router for the Pi's IP)
-   - Or try **`http://raspberrypi.local:5000`** if mDNS is available
+The installer configures the Raspberry Pi as a **standalone Wi-Fi Access Point**. Just connect directly to it:
+
+| Setting | Value |
+|---------|-------|
+| **Wi-Fi SSID default** | `VideoLooper` |
+| **Password default** | `looper123` |
+| **Web interface default** | `http://videolooper.local:5000` |
+
+1. On your phone, tablet, or laptop — open Wi-Fi settings and connect to **`VideoLooper`**.
+2. Open a browser and go to **`http://videolooper.local:5000`**.
+   - If `.local` doesn't resolve (some Android devices), use **`http://10.42.0.1:5000`** instead.
+
+> The Pi does **not** need to be connected to any other network. It works completely standalone.
+
+#### Changing the hotspot name or password
+
+Edit `setup_hotspot.sh` with the SSID, password and hostname you want before running the installer (or re-run it separately):
+
+```bash
+sudo ./setup_hotspot.sh
+sudo reboot
+```
+
+### Accessing via an existing network (optional)
+
+If you prefer to connect the Pi to your router instead, disable the hotspot and connect via IP or mDNS:
+
+```bash
+# Disable the hotspot autoconnect
+sudo nmcli connection modify VideoLooperHotspot connection.autoconnect no
+sudo reboot
+```
+
+Then access the interface at:
+- **`http://<pi-ip-address>:5000`** (check your router for the Pi's IP)
+- **`http://videolooper.local:5000`** (mDNS, works on most devices)
 
 ### Web UI Features
 
@@ -37,12 +69,13 @@ The default `file_reader` is set to `web_reader`, which watches `~/Videos` for f
 
 ### Services
 
-Two systemd services run after installation:
+Three systemd services run after installation:
 
 | Service | Purpose |
 |---------|---------|
 | `video_looper` | Plays videos fullscreen on the HDMI display |
 | `video_web` | Runs the web management interface on port 5000 |
+| `avahi-daemon` | Runs the mDNS service to allow access to the web interface |
 
 Check their status with:
 ```bash
