@@ -8,7 +8,7 @@ Wants=video_looper.service
 
 [Service]
 Type=simple
-WorkingDirectory=/home/{USERNAME}/pi_video_looper2
+WorkingDirectory=/home/{USERNAME}
 ExecStart=/home/{USERNAME}/venvs/pi_video_looper2_venv/bin/python -u -m Adafruit_Video_Looper.web_server /boot/video_looper.ini
 Restart=always
 RestartSec=5
