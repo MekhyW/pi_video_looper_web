@@ -32,3 +32,6 @@ Homepage = "https://github.com/adafruit/pi_video_looper"
 
 [tool.setuptools]
 packages = ["Adafruit_Video_Looper"]
+
+[tool.setuptools.package-data]
+Adafruit_Video_Looper = ["templates/*.html"]
