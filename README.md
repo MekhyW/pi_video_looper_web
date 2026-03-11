@@ -59,16 +59,6 @@ journalctl -fu video_web
 The datetime display showing between videos during wait_time is not functioning properly in this version.
 All other features from the original pi_video_looper are believed to be tested and working, please file an issue if you find something that isn't.
 
-## Changelog
-#### new in v0.1.0
- - Forked from original pi_video_looper
- - vlcplayer added
- - support for user other than pi
- - use systemd instead of supervisor
- - pyproject.toml instead of setup.py
- - uninstall.sh script
- - readonly drive mounted is not supported. Drive mounting is handled automatically by the OS.
-
 ## How to install
 ```shell
 sudo apt-get install git
