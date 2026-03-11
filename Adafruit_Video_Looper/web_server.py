@@ -57,7 +57,7 @@ def create_app(upload_dir: str) -> Flask:
 
     @app.route('/')
     def index():
-        return render_template('templates/index.html')
+        return render_template('index.html')
 
     @app.route('/api/status')
     def api_status():
